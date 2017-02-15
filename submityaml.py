@@ -4,6 +4,7 @@ import os.path
 import sys
 import time
 import xmlrpclib
+import urllib2
 
 SLEEP = 5
 __version__ = 0.5
@@ -67,9 +68,15 @@ def monitorJob(jobid, server, server_str):
         while True:
             status = server.scheduler.job_status(jobid)
             if status['job_status'] == 'Complete':
+                 url = 'http://192.168.1.16/scheduler/job/%s/log_file/plain' % jobid
+                 response = urllib2.urlopen(url)
+                 print response.read()
                  exit(0)
             elif status['job_status'] == 'Incomplete':
-                exit(1)
+                 url = 'http://192.168.1.16/scheduler/job/%s/log_file/plain' % jobid
+                 response = urllib2.urlopen(url)
+                 print response.read()
+                 exit(1)
             elif status['job_status'] == 'Canceled':
                 print '\nJob Canceled'
                 exit(0)
