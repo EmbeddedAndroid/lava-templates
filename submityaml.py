@@ -5,6 +5,7 @@ import sys
 import time
 import xmlrpclib
 import urllib2
+import yaml
 
 SLEEP = 5
 __version__ = 0.5
@@ -55,6 +56,19 @@ def submitJob(yamlfile, server):
     return jobid
 
 
+def getLog(jobid):
+    """getLog - HTTP Call to fetch logs
+
+       print logfile to STDOUT
+    """
+    url = 'http://192.168.1.16/scheduler/job/%s/log_file/plain' % jobid
+    response = urllib2.urlopen(url)
+    raw = response.read()
+    log = yaml.load(raw)
+    for line in log:
+        if 'msg' in line:
+            print line['msg']
+
 def monitorJob(jobid, server, server_str):
     """monitorJob - added to poll for a job to complete
 
@@ -68,15 +82,11 @@ def monitorJob(jobid, server, server_str):
         while True:
             status = server.scheduler.job_status(jobid)
             if status['job_status'] == 'Complete':
-                 url = 'http://192.168.1.16/scheduler/job/%s/log_file/plain' % jobid
-                 response = urllib2.urlopen(url)
-                 print response.read()
-                 exit(0)
+                getLog(jobid)
+                exit(0)
             elif status['job_status'] == 'Incomplete':
-                 url = 'http://192.168.1.16/scheduler/job/%s/log_file/plain' % jobid
-                 response = urllib2.urlopen(url)
-                 print response.read()
-                 exit(1)
+                getLog(jobid)
+                exit(1)
             elif status['job_status'] == 'Canceled':
                 print '\nJob Canceled'
                 exit(0)
